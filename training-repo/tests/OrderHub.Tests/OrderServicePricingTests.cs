@@ -1,9 +1,29 @@
 using OrderHub.Core.Domain;
+using OrderHub.Core.Services;
 
 namespace OrderHub.Tests;
 
 public class OrderServicePricingTests
 {
+    [Fact]
+    public async Task CreateOrder_GoldCustomer_AppliesDiscountExactlyOnce()
+    {
+        using var db = TestSetup.CreateContext();
+        var service = TestSetup.CreateOrderService(db);
+        var customer = TestSetup.AddCustomer(db, CustomerTier.Gold);
+        var product = TestSetup.AddProduct(db, unitPrice: 1000m);
+
+        var result = await service.CreateOrderAsync(
+            customer.Id,
+            new[] { new NewOrderLine(product.Id, 1) });
+        var order = await service.GetOrderAsync(result.Value!.Id);
+
+        Assert.True(result.Success);
+        Assert.NotNull(order);
+        Assert.Equal(900m, service.CalculateTotal(order!));
+        Assert.Equal(1000m, order.Items.Single().UnitPriceSnapshot);
+    }
+
     [Theory]
     [InlineData(CustomerTier.Standard, 0)]
     [InlineData(CustomerTier.Silver, 0.05)]

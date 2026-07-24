@@ -41,6 +41,34 @@ public class OrderServiceQueryTests
     }
 
     [Fact]
+    public async Task GetOrders_FirstPageReturnsNewestOrders_AndLastPageContainsRemainder()
+    {
+        using var db = TestSetup.CreateContext();
+        var service = TestSetup.CreateOrderService(db);
+        var customer = TestSetup.AddCustomer(db);
+        var newestCreatedAt = DateTime.UtcNow;
+
+        for (var i = 0; i < 21; i++)
+        {
+            db.Orders.Add(new Order
+            {
+                CustomerId = customer.Id,
+                Status = OrderStatus.Confirmed,
+                CreatedAt = newestCreatedAt.AddMinutes(-i)
+            });
+        }
+        db.SaveChanges();
+
+        var firstPage = await service.GetOrdersAsync(1, 20, null);
+        var lastPage = await service.GetOrdersAsync(2, 20, null);
+
+        Assert.Equal(20, firstPage.Items.Count);
+        Assert.Equal(newestCreatedAt, firstPage.Items.First().CreatedAt);
+        Assert.Single(lastPage.Items);
+        Assert.Equal(newestCreatedAt.AddMinutes(-20), lastPage.Items.Single().CreatedAt);
+    }
+
+    [Fact]
     public async Task GetCustomerOrders_ReturnsOnlyThatCustomersOrders()
     {
         using var db = TestSetup.CreateContext();

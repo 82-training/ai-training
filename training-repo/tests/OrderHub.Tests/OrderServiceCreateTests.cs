@@ -133,6 +133,26 @@ public class OrderServiceCreateTests
     }
 
     [Fact]
+    public async Task CreateOrder_MultipleInvalidLines_ReturnsAllErrors()
+    {
+        using var db = TestSetup.CreateContext();
+        var service = TestSetup.CreateOrderService(db);
+        var customer = TestSetup.AddCustomer(db);
+        var product = TestSetup.AddProduct(db, stock: 2);
+
+        var result = await service.CreateOrderAsync(customer.Id, new[]
+        {
+            new NewOrderLine(product.Id, 5),
+            new NewOrderLine(999, 1)
+        });
+
+        Assert.False(result.Success);
+        Assert.Equal(2, result.Errors.Count);
+        Assert.Contains("庫存不足", result.Errors[0]);
+        Assert.Contains("不存在或已停售", result.Errors[1]);
+    }
+
+    [Fact]
     public async Task CreateOrder_Failed_DoesNotPersistOrder()
     {
         using var db = TestSetup.CreateContext();

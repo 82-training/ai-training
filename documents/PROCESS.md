@@ -122,3 +122,9 @@ npx @modelcontextprotocol/inspector@0.16.1 dotnet run --project src/OrderHub.Mcp
 練習4
 -取消訂單後回傳 "訂單 1 已取消，庫存已回補"
 -在取消同訂單 回傳 "取消失敗：狀態為 Cancelled 的訂單不可取消" 
+
+練習5
+-加了 resource, agent不需要自己去讀代碼，找邏輯 和靠猜測
+讀了 resource 就很直接有了該部分的商業邏輯，可是下次商業邏輯改了 resource 就要更新
+
+-prompt 就統一整組填對的提問法方式 不需要浪費時間想 要怎麼 prompt 來拿到一直的結果和成績，省時間和達到 consistent 的結果
